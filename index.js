@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
     res.send('Hello from my server')
 })
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.alvdp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -70,6 +70,7 @@ async function run() {
       const result = await taskCollection.insertOne(workData);
       res.send(result);
     });
+
     app.get('/work-sheet', async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
@@ -77,6 +78,15 @@ async function run() {
       res.send(result);
     });
 
+    app.put('/work-sheet/:id', async (req, res) => {
+      //console.log("put request");
+      const id = req.params.id;
+      const updatedData = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = { $set: updatedData };
+      const result = await taskCollection.updateOne(query, update);
+      res.send(result);
+    });
 
 
 
