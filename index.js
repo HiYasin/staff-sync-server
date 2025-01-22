@@ -73,7 +73,7 @@ async function run() {
     app.get('/work-sheet', async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
-      const result = await taskCollection.findOne(query);
+      const result = await taskCollection.find(query).toArray();
       res.send(result);
     });
 
