@@ -39,9 +39,10 @@ async function run() {
     await client.connect();
 
     const database = client.db("StaffSync");
-    const userCollection = database.collection('users');
+    
 
     //Authentication related Apis
+    const userCollection = database.collection('users');
     app.post('/users', async(req,res)=>{
       const user = req.body;
       //console.log(user);
@@ -59,6 +60,20 @@ async function run() {
       const email = req.query.email;
       const query = { email: email };
       const result = await userCollection.findOne(query);
+      res.send(result);
+    });
+
+    //User data store
+    const taskCollection = database.collection('work-sheet');
+    app.post('/work-sheet', async(req,res)=>{
+      const workData = req.body;
+      const result = await taskCollection.insertOne(workData);
+      res.send(result);
+    });
+    app.get('/work-sheet', async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await taskCollection.findOne(query);
       res.send(result);
     });
 
