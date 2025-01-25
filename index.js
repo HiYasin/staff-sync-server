@@ -63,9 +63,21 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/user-details/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.findOne(query);
+      if (result) {
+        res.send(result);
+      } else {
+        res.send({message: "User doesn't exists"});
+      }
+    });
+
     //HR related api
     app.get('/users/employee', async (req, res) => {
-      console.log('hit');
+      //console.log('hit');
       const query = { role: 'employee' };
       const result = await userCollection.find(query).toArray();
       res.send(result);
@@ -91,7 +103,13 @@ async function run() {
         res.send(result);
       }
     });
-
+    
+    app.get('/payroll', async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await payrollCollection.find(query).toArray();
+      res.send(result);
+    });
 
     //User task data store, update and delete
     const taskCollection = database.collection('work-sheet');
