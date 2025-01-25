@@ -63,7 +63,15 @@ async function run() {
       res.send(result);
     });
 
-    //User data store
+
+    app.get('/users/employee', async (req, res) => {
+      const query = { role: 'employee' };
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
+
+    //User task data store, update and delete
     const taskCollection = database.collection('work-sheet');
     app.post('/work-sheet', async(req,res)=>{
       const workData = req.body;
@@ -88,7 +96,12 @@ async function run() {
       res.send(result);
     });
 
-
+    app.delete('/work-sheet/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
