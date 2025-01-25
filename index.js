@@ -10,15 +10,15 @@ const port = process.env.PORT || 3000;
 //middleware
 app.use(express.json());
 app.use(cors(
-    {
-        origin: ['http://localhost:5173'], //replace with client address
-        credentials: true,
-    }
-)); 
+  {
+    origin: ['http://localhost:5173'], //replace with client address
+    credentials: true,
+  }
+));
 
 
 app.get('/', (req, res) => {
-    res.send('Hello from my server')
+  res.send('Hello from my server')
 })
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -39,18 +39,18 @@ async function run() {
     await client.connect();
 
     const database = client.db("StaffSync");
-    
+
 
     //Authentication related Apis
     const userCollection = database.collection('users');
-    app.post('/users', async(req,res)=>{
+    app.post('/users', async (req, res) => {
       const user = req.body;
       //console.log(user);
-      const query = {email: user.email};
+      const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
-      if(existingUser){
-        return res.send({insertedId: null, message: 'User already exists'});
-      }else{
+      if (existingUser) {
+        return res.send({ insertedId: null, message: 'User already exists' });
+      } else {
         const result = await userCollection.insertOne(user);
         res.send(result);
       }
@@ -63,17 +63,39 @@ async function run() {
       res.send(result);
     });
 
-
+    //HR related api
     app.get('/users/employee', async (req, res) => {
+      console.log('hit');
       const query = { role: 'employee' };
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
 
+    app.patch('/users/verify/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id), verified: false };
+      const update = { $set: { verified: true } };
+      const result = await userCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+    const payrollCollection = database.collection('payroll');
+    app.post('/pay', async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email, month: user.month, year: user.year };
+      const paid = await payrollCollection.findOne(query);
+      if (paid) {
+        return res.send({ insertedId: null, message: 'All ready paid for this month' });
+      } else {
+        const result = await payrollCollection.insertOne(user);
+        res.send(result);
+      }
+    });
+
 
     //User task data store, update and delete
     const taskCollection = database.collection('work-sheet');
-    app.post('/work-sheet', async(req,res)=>{
+    app.post('/work-sheet', async (req, res) => {
       const workData = req.body;
       const result = await taskCollection.insertOne(workData);
       res.send(result);
@@ -115,5 +137,5 @@ run().catch(console.dir);
 
 
 app.listen(port, () => {
-    console.log('My simple server is running at', port);
+  console.log('My simple server is running at', port);
 })
