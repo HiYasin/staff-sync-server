@@ -65,7 +65,7 @@ async function run() {
 
     app.get('/user-details/:id', async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      //console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await userCollection.findOne(query);
       if (result) {
@@ -121,8 +121,15 @@ async function run() {
 
     app.get('/work-sheet', async (req, res) => {
       const email = req.query.email;
+      //console.log(email);
       const query = { email: email };
       const result = await taskCollection.find(query).toArray();
+      res.send(result);
+    });
+    
+    app.get('/work-sheets', async (req, res) => {
+      console.log('Hit');
+      const result = await taskCollection.find().toArray();
       res.send(result);
     });
 
