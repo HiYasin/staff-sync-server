@@ -68,6 +68,7 @@ async function run() {
 
     //Authentication related Apis
     const userCollection = database.collection('users');
+    //public api to create user
     app.post('/users', async (req, res) => {
       const user = req.body;
       //console.log(user);
@@ -88,9 +89,8 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/user-details/:id', async (req, res) => {
+    app.get('/user-details/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
-      //console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await userCollection.findOne(query);
       if (result) {
@@ -101,8 +101,7 @@ async function run() {
     });
 
     //HR related api
-    app.get('/users/employee', async (req, res) => {
-      //console.log('hit');
+    app.get('/users/employee', verifyToken, async (req, res) => {
       const query = { role: 'employee' };
       const result = await userCollection.find(query).toArray();
       res.send(result);
@@ -115,7 +114,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch('/users/verify/:id', async (req, res) => {
+    app.patch('/users/verify/:id', verifyToken,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), verified: false };
       const update = { $set: { verified: true } };
@@ -124,21 +123,21 @@ async function run() {
     });
 
 
-    app.patch('/users/fire/:id', async (req, res) => {
+    app.patch('/users/fire/:id', verifyToken,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), status: 'running' };
       const update = { $set: { status: 'fired' } };
       const result = await userCollection.updateOne(query, update);
       res.send(result);
     });
-    app.patch('/salary-increment/:id', async (req, res) => {
+    app.patch('/salary-increment/:id', verifyToken,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const update = { $set: { salary: req.body.salary } };
       const result = await userCollection.updateOne(query, update);
       res.send(result);
     });
-    app.patch('/users/promote/:id', async (req, res) => {
+    app.patch('/users/promote/:id', verifyToken,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), role: 'employee' };
       const update = { $set: { role: 'hr' } };
@@ -147,7 +146,7 @@ async function run() {
     });
 
     const payrollCollection = database.collection('payroll');
-    app.post('/pay', async (req, res) => {
+    app.post('/pay', verifyToken,  async (req, res) => {
       const user = req.body;
       const query = { email: user.email, month: user.month, year: user.year };
       const paid = await payrollCollection.findOne(query);
@@ -159,19 +158,19 @@ async function run() {
       }
     });
     
-    app.get('/payroll', async (req, res) => {
+    app.get('/payroll', verifyToken,   async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const result = await payrollCollection.find(query).toArray();
       res.send(result);
     });
 
-    app.get('/payment', async (req, res) => {
+    app.get('/payment', verifyToken,  async (req, res) => {
       const result = await payrollCollection.find().toArray();
       res.send(result);
     });
 
-    app.patch('/payment/:id', async (req, res) => {
+    app.patch('/payment/:id', verifyToken,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), status: 'unpaid' };
       const update = { $set: { status: 'paid', date: req.body.date } };
@@ -181,13 +180,13 @@ async function run() {
 
     //User task data store, update and delete
     const taskCollection = database.collection('work-sheet');
-    app.post('/work-sheet', async (req, res) => {
+    app.post('/work-sheet', verifyToken, async (req, res) => {
       const workData = req.body;
       const result = await taskCollection.insertOne(workData);
       res.send(result);
     });
 
-    app.get('/work-sheet', async (req, res) => {
+    app.get('/work-sheet', verifyToken, async (req, res) => {
       const email = req.query.email;
       //console.log(email);
       const query = { email: email };
@@ -195,13 +194,13 @@ async function run() {
       res.send(result);
     });
     
-    app.get('/work-sheets', async (req, res) => {
+    app.get('/work-sheets', verifyToken, async (req, res) => {
       //console.log('Hit');
       const result = await taskCollection.find().toArray();
       res.send(result);
     });
 
-    app.put('/work-sheet/:id', async (req, res) => {
+    app.put('/work-sheet/:id', verifyToken, async (req, res) => {
       //console.log("put request");
       const id = req.params.id;
       const updatedData = req.body;
@@ -211,7 +210,7 @@ async function run() {
       res.send(result);
     });
 
-    app.delete('/work-sheet/:id', async (req, res) => {
+    app.delete('/work-sheet/:id', verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await taskCollection.deleteOne(query);
