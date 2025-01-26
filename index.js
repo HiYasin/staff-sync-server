@@ -105,6 +105,13 @@ async function run() {
       const result = await userCollection.updateOne(query, update);
       res.send(result);
     });
+    app.patch('/salary-increment/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const update = { $set: { salary: req.body.salary } };
+      const result = await userCollection.updateOne(query, update);
+      res.send(result);
+    });
     app.patch('/users/promote/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), role: 'employee' };
@@ -132,8 +139,17 @@ async function run() {
       const result = await payrollCollection.find(query).toArray();
       res.send(result);
     });
+
     app.get('/payment', async (req, res) => {
       const result = await payrollCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.patch('/payment/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id), status: 'unpaid' };
+      const update = { $set: { status: 'paid', date: req.body.date } };
+      const result = await payrollCollection.updateOne(query, update);
       res.send(result);
     });
 
