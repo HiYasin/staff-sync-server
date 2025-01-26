@@ -49,7 +49,7 @@ async function run() {
       const query = { email: user.email };
       const existingUser = await userCollection.findOne(query);
       if (existingUser) {
-        return res.send({ insertedId: null, message: 'User already exists' });
+        return res.send({ insertedId: null, message: 'User already exists', status: existingUser.status });
       } else {
         const result = await userCollection.insertOne(user);
         res.send(result);
@@ -93,6 +93,15 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), verified: false };
       const update = { $set: { verified: true } };
+      const result = await userCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+
+    app.patch('/users/fire/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id), status: 'running' };
+      const update = { $set: { status: 'fired' } };
       const result = await userCollection.updateOne(query, update);
       res.send(result);
     });
