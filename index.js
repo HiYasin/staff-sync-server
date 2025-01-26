@@ -83,6 +83,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/users/all', async (req, res) => {
+      //console.log('hit');
+      const query = { role: { $in: ['employee', 'hr'] } }; const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
+
     app.patch('/users/verify/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), verified: false };
@@ -128,7 +134,7 @@ async function run() {
     });
     
     app.get('/work-sheets', async (req, res) => {
-      console.log('Hit');
+      //console.log('Hit');
       const result = await taskCollection.find().toArray();
       res.send(result);
     });
