@@ -132,6 +132,10 @@ async function run() {
       const result = await payrollCollection.find(query).toArray();
       res.send(result);
     });
+    app.get('/payment', async (req, res) => {
+      const result = await payrollCollection.find().toArray();
+      res.send(result);
+    });
 
     //User task data store, update and delete
     const taskCollection = database.collection('work-sheet');
