@@ -4,7 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 3000;
 
 //middleware
@@ -39,7 +39,32 @@ async function run() {
     await client.connect();
 
     const database = client.db("StaffSync");
+    //jwt related api
+    //jwt middlewares
+    const verifyToken = (req, res, next) => {
+      //console.log('Inside verify token:', req.headers);
+      if(!req.headers.authorization){
+        return res.status(401).send({ message: 'Forbidden access.'});
+      }
+      const token = req.headers.authorization.split(' ')[1];
+      //console.log('token:', token);
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(403).send({ message: 'Invalid token.' });
+        }
+        req.decoded = decoded;
+        next();
+      })
+    }
 
+    //create jwt
+    app.post('/jwt', async(req, res) => {
+      //console.log("Success");
+      const user = req.body;
+      //console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' });
+      res.send({ token: token });
+    })
 
     //Authentication related Apis
     const userCollection = database.collection('users');
@@ -83,8 +108,9 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/users/all', async (req, res) => {
-      //console.log('hit');
+    app.get('/users/all', verifyToken, async (req, res) => {
+      console.log(req.decoded);
+      //console.log(req.headers);
       const query = { role: { $in: ['employee', 'hr'] } }; const result = await userCollection.find(query).toArray();
       res.send(result);
     });
