@@ -283,7 +283,19 @@ async function run() {
       res.send({ clientSecret: client_secret});
     })
 
+    //contact related api
+    const contactCollection = database.collection('inbox');
+    app.post('/contact', async (req, res) => {
+      const contact = req.body;
+      const result = await contactCollection.insertOne(contact);
+      res.send(result);
+    });
 
+    //fetch all email from inbox
+    app.get('/inbox', verifyToken, verifyAdmin, async (req, res) => {
+      const result = await contactCollection.find().toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
