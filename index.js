@@ -13,7 +13,7 @@ const stripe = require('stripe')(process.env.PAYMENT_SECURE_KEY);
 app.use(express.json());
 app.use(cors(
   {
-    origin: ['http://localhost:5173'], //replace with client address
+    origin: ['http://localhost:5173', 'https://staff-sync-9fbf6.web.app', 'https://staff-sync-9fbf6.firebaseapp.com'], //replace with client address
     credentials: true,
   }
 ));
@@ -38,7 +38,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    //await client.connect();
     
     //jwt related api
     //jwt middlewares
@@ -65,7 +65,7 @@ async function run() {
       if (req.decoded.role !== 'admin') {
       return res.status(403).send({ message: 'Admin access required.' });
       }
-      console.log(req.decoded);
+      //console.log(req.decoded);
       next();
     }
     const verifyHr = (req, res, next) => {
@@ -298,8 +298,8 @@ async function run() {
     });
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    //await client.db("admin").command({ ping: 1 });
+    //console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
