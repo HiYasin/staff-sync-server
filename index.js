@@ -7,6 +7,8 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 3000;
 
+const stripe = require('stripe')(process.env.PAYMENT_SECURE_KEY);
+
 //middleware
 app.use(express.json());
 app.use(cors(
@@ -37,7 +39,6 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-
     
     //jwt related api
     //jwt middlewares
@@ -78,7 +79,7 @@ async function run() {
       if (req.decoded.role !== 'employee') {
       return res.status(403).send({ message: 'Admin access required.' });
       }
-      console.log(req.decoded);
+      //console.log(req.decoded);
       next();
     }
 
@@ -212,7 +213,7 @@ async function run() {
     app.patch('/payment/:id', verifyToken, verifyAdmin,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), status: 'unpaid' };
-      const update = { $set: { status: 'paid', date: req.body.date } };
+      const update = { $set: { status: 'paid', date: req.body.date, trxID: req.body.trxId } };
       const result = await payrollCollection.updateOne(query, update);
       res.send(result);
     });
@@ -260,6 +261,29 @@ async function run() {
       const result = await taskCollection.deleteOne(query);
       res.send(result);
     });
+
+    //payment intent
+    app.post('/payment-intent', verifyToken, verifyAdmin, async (req, res)=>{
+      //console.log(req.body);
+      const id = req.body._id;
+      const query = { _id: new ObjectId(id), status: 'unpaid' };
+      const result = await payrollCollection.findOne(query);
+      if(!result){
+        return res.status(404).send({message: "Payment intent not found"});
+      }
+      //console.log(result);
+      const salaryAmount = parseInt(result.salary)*100;
+      const { client_secret } = await stripe.paymentIntents.create({
+        amount: salaryAmount,
+        currency: 'usd',
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      res.send({ clientSecret: client_secret});
+    })
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
