@@ -61,10 +61,11 @@ async function run() {
     }
 
     const verifyAdmin = (req, res, next) => {
-      if (req.decoded.email !== 'admin@staff.com') {
+      if (req.decoded.role !== 'admin') {
       return res.status(403).send({ message: 'Admin access required.' });
       }
       //console.log('admin verified');
+      console.log(req.decoded);
       next();
     }
 
@@ -78,6 +79,7 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' });
       res.send({ token: token });
     })
+
 
     const database = client.db("StaffSync");
     //Authentication related Apis
