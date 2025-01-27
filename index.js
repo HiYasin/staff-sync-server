@@ -64,7 +64,20 @@ async function run() {
       if (req.decoded.role !== 'admin') {
       return res.status(403).send({ message: 'Admin access required.' });
       }
-      //console.log('admin verified');
+      console.log(req.decoded);
+      next();
+    }
+    const verifyHr = (req, res, next) => {
+      if (req.decoded.role !== 'hr') {
+      return res.status(403).send({ message: 'Admin access required.' });
+      };
+      console.log(req.decoded);
+      next();
+    }
+    const verifyEmpolyee = (req, res, next) => {
+      if (req.decoded.role !== 'employee') {
+      return res.status(403).send({ message: 'Admin access required.' });
+      }
       console.log(req.decoded);
       next();
     }
@@ -117,21 +130,21 @@ async function run() {
     });
 
     //HR related api
-    app.get('/users/employee', verifyToken, async (req, res) => {
+    app.get('/users/employee', verifyToken, verifyHr, async (req, res) => {
       const query = { role: 'employee' };
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
 
     //a
-    app.get('/users/all', verifyToken,verifyAdmin, async (req, res) => {
+    app.get('/users/all', verifyToken, verifyAdmin, async (req, res) => {
       //console.log(req.headers);
       const query = { role: { $in: ['employee', 'hr'] } }; const result = await userCollection.find(query).toArray();
       res.send(result);
     });
 
     //h
-    app.patch('/users/verify/:id', verifyToken,  async (req, res) => {
+    app.patch('/users/verify/:id', verifyToken, verifyHr,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), verified: false };
       const update = { $set: { verified: true } };
@@ -168,7 +181,7 @@ async function run() {
 
     //h
     const payrollCollection = database.collection('payroll');
-    app.post('/pay', verifyToken,  async (req, res) => {
+    app.post('/pay', verifyToken, verifyHr,  async (req, res) => {
       const user = req.body;
       const query = { email: user.email, month: user.month, year: user.year };
       const paid = await payrollCollection.findOne(query);
@@ -181,7 +194,7 @@ async function run() {
     });
     
     //h&u
-    app.get('/payroll', verifyToken,   async (req, res) => {
+    app.get('/payroll', verifyToken,  async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const result = await payrollCollection.find(query).toArray();
@@ -195,8 +208,8 @@ async function run() {
     });
 
 
-    //h&a
-    app.patch('/payment/:id', verifyToken,  async (req, res) => {
+    //a
+    app.patch('/payment/:id', verifyToken, verifyAdmin,  async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), status: 'unpaid' };
       const update = { $set: { status: 'paid', date: req.body.date } };
@@ -207,7 +220,7 @@ async function run() {
     //u
     //User task data store, update and delete
     const taskCollection = database.collection('work-sheet');
-    app.post('/work-sheet', verifyToken, async (req, res) => {
+    app.post('/work-sheet', verifyToken, verifyEmpolyee, async (req, res) => {
       const workData = req.body;
       const result = await taskCollection.insertOne(workData);
       res.send(result);
@@ -230,7 +243,7 @@ async function run() {
     });
 
     //u
-    app.put('/work-sheet/:id', verifyToken, async (req, res) => {
+    app.put('/work-sheet/:id', verifyToken, verifyEmpolyee, async (req, res) => {
       //console.log("put request");
       const id = req.params.id;
       const updatedData = req.body;
@@ -241,7 +254,7 @@ async function run() {
     });
 
     //u
-    app.delete('/work-sheet/:id', verifyToken, async (req, res) => {
+    app.delete('/work-sheet/:id', verifyToken, verifyEmpolyee, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await taskCollection.deleteOne(query);
