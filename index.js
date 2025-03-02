@@ -39,13 +39,13 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     //await client.connect();
-    
+
     //jwt related api
     //jwt middlewares
     const verifyToken = (req, res, next) => {
       //console.log('Inside verify token:', req.headers);
-      if(!req.headers.authorization){
-        return res.status(401).send({ message: 'Forbidden access.'});
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: 'Forbidden access.' });
       }
       const token = req.headers.authorization.split(' ')[1];
       //console.log('token:', token);
@@ -63,21 +63,21 @@ async function run() {
 
     const verifyAdmin = (req, res, next) => {
       if (req.decoded.role !== 'admin') {
-      return res.status(403).send({ message: 'Admin access required.' });
+        return res.status(403).send({ message: 'Admin access required.' });
       }
       //console.log(req.decoded);
       next();
     }
     const verifyHr = (req, res, next) => {
       if (req.decoded.role !== 'hr') {
-      return res.status(403).send({ message: 'Admin access required.' });
+        return res.status(403).send({ message: 'Admin access required.' });
       };
       console.log(req.decoded);
       next();
     }
     const verifyEmpolyee = (req, res, next) => {
       if (req.decoded.role !== 'employee') {
-      return res.status(403).send({ message: 'Admin access required.' });
+        return res.status(403).send({ message: 'Admin access required.' });
       }
       //console.log(req.decoded);
       next();
@@ -86,7 +86,7 @@ async function run() {
 
 
     //create jwt
-    app.post('/jwt', async(req, res) => {
+    app.post('/jwt', async (req, res) => {
       //console.log("Success");
       const user = req.body;
       //console.log(user);
@@ -126,7 +126,7 @@ async function run() {
       if (result) {
         res.send(result);
       } else {
-        res.send({message: "User doesn't exists"});
+        res.send({ message: "User doesn't exists" });
       }
     });
 
@@ -145,7 +145,7 @@ async function run() {
     });
 
     //h
-    app.patch('/users/verify/:id', verifyToken, verifyHr,  async (req, res) => {
+    app.patch('/users/verify/:id', verifyToken, verifyHr, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), verified: false };
       const update = { $set: { verified: true } };
@@ -182,7 +182,7 @@ async function run() {
 
     //h
     const payrollCollection = database.collection('payroll');
-    app.post('/pay', verifyToken, verifyHr,  async (req, res) => {
+    app.post('/pay', verifyToken, verifyHr, async (req, res) => {
       const user = req.body;
       const query = { email: user.email, month: user.month, year: user.year };
       const paid = await payrollCollection.findOne(query);
@@ -193,9 +193,9 @@ async function run() {
         res.send(result);
       }
     });
-    
+
     //h&u
-    app.get('/payroll', verifyToken,  async (req, res) => {
+    app.get('/payroll', verifyToken, async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const result = await payrollCollection.find(query).toArray();
@@ -203,14 +203,14 @@ async function run() {
     });
 
     //h&a
-    app.get('/payment', verifyToken,  async (req, res) => {
+    app.get('/payment', verifyToken, async (req, res) => {
       const result = await payrollCollection.find().toArray();
       res.send(result);
     });
 
 
     //a
-    app.patch('/payment/:id', verifyToken, verifyAdmin,  async (req, res) => {
+    app.patch('/payment/:id', verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id), status: 'unpaid' };
       const update = { $set: { status: 'paid', date: req.body.date, trxID: req.body.trxId } };
@@ -235,7 +235,7 @@ async function run() {
       const result = await taskCollection.find(query).toArray();
       res.send(result);
     });
-    
+
     //h
     app.get('/work-sheets', verifyToken, async (req, res) => {
       //console.log('Hit');
@@ -263,16 +263,16 @@ async function run() {
     });
 
     //payment intent
-    app.post('/payment-intent', verifyToken, verifyAdmin, async (req, res)=>{
+    app.post('/payment-intent', verifyToken, verifyAdmin, async (req, res) => {
       //console.log(req.body);
       const id = req.body._id;
       const query = { _id: new ObjectId(id), status: 'unpaid' };
       const result = await payrollCollection.findOne(query);
-      if(!result){
-        return res.status(404).send({message: "Payment intent not found"});
+      if (!result) {
+        return res.status(404).send({ message: "Payment intent not found" });
       }
       //console.log(result);
-      const salaryAmount = parseInt(result.salary)*100;
+      const salaryAmount = parseInt(result.salary) * 100;
       const { client_secret } = await stripe.paymentIntents.create({
         amount: salaryAmount,
         currency: 'usd',
@@ -280,7 +280,7 @@ async function run() {
           enabled: true,
         },
       });
-      res.send({ clientSecret: client_secret});
+      res.send({ clientSecret: client_secret });
     })
 
     //contact related api
@@ -311,3 +311,12 @@ run().catch(console.dir);
 app.listen(port, () => {
   console.log('My simple server is running at', port);
 })
+
+
+
+
+
+
+
+
+
